@@ -1,0 +1,12 @@
+{
+  "name": "vanity-worker",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node worker.js"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.1",
+    "xrpl": "^4.4.0"
+  }
+} 

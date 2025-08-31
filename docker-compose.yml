@@ -1,0 +1,64 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - "./data/redis:/data"
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      XRPL_RPC: ${XRPL_WS_URL}
+      PAY_DEST_MAINNET: ${DESTINATION_ADDRESS}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    environment:
+      VITE_PUBLIC_API_BASE: http://api:8080
+      VITE_SUPABASE_URL: ${SUPABASE_URL}
+      VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      VITE_PAY_DEST_MAINNET: ${DESTINATION_ADDRESS}
+      VITE_PAY_DEST_TESTNET: ${VITE_PAY_DEST_TESTNET:-rTESTDESTADDRESS}
+      VITE_PRICE_DROPS: ${PRICE_DROPS}
+      VITE_PAYMENT_MODE: ${PAYMENT_MODE}
+      VITE_FIATCOIN_ISSUER: ${FIATCOIN_ISSUER}
+      VITE_FIATCOIN_CODE: ${FIATCOIN_CODE}
+      VITE_XRPL_NETWORK: ${XRPL_NETWORK}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  worker-gpu:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile.gpu
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      MINER_CMD: ${MINER_CMD:-}
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    volumes:
+      - "./worker/bin:/miner"
+      - "./logs/worker:/var/log/vanity"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    gpus: all
+    depends_on:
+      - redis
+    restart: unless-stopped

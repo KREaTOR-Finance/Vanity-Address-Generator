@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - "./data/redis:/data"
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      XRPL_RPC: ${XRPL_RPC}
+      PAY_DEST_MAINNET: ${PAY_DEST_MAINNET}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  worker:
+    build: ./worker
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      MINER_CMD: node /app/miner/vanity.mjs
+    volumes:
+      - "./worker/bin:/miner"
+    depends_on:
+      - redis
+    restart: unless-stopped 
