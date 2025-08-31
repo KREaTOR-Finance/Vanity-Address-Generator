@@ -15,7 +15,11 @@ export async function callEdgeFunction<T = any>(path: string, init?: RequestInit
 	const base = getSupabaseFunctionsBaseUrl();
 	const anon = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY as string | undefined;
 	if (!anon) throw new Error('VITE_SUPABASE_ANON_KEY is not set');
-	const res = await fetch(`${base}/${path}`.replace(/\/+/g, '/').replace(/\/+$/, ''), {
+	// Safe URL join without breaking the protocol part (avoids turning https:// into https:/)
+	const baseClean = base.replace(/\/+$/, '');
+	const pathClean = String(path || '').replace(/^\/+/, '');
+	const url = `${baseClean}/${pathClean}`;
+	const res = await fetch(url, {
 		...init,
 		headers: {
 			'Authorization': `Bearer ${anon}`,
