@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Client } from 'xrpl'
+import Redis from 'ioredis'
 
 const ALLOWED = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
 const ok58 = (s?: string) => [...(s || '')].every((c) => ALLOWED.includes(c))
@@ -56,8 +57,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // For serverless minimal example, just echo a stub job
     const jobId = txid
+    const deliverySecret = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2)
+    const redisUrl = process.env.REDIS_URL
+    if (redisUrl) {
+      const redis = new Redis(redisUrl)
+      await redis.hset(`job:${jobId}`, {
+        status: 'paid',
+        txid: result.hash,
+        mode: normalizedMode,
+        prefix: prefix || '',
+        suffix: suffix || '',
+        len,
+        algo: 'ed25519',
+        deliverySecret,
+        createdAt: Date.now().toString()
+      })
+      await redis.lpush('queue:vanity', jobId)
+      await redis.quit()
+    }
     const base = process.env.PUBLIC_BASE_URL || ''
-    return res.json({ jobId, progressUrl: `${base}/api/progress/${jobId}`, deliveryUrl: `${base}/api/deliver/${jobId}` })
+    return res.json({ jobId, progressUrl: `${base}/api/progress/${jobId}`, deliveryUrl: `${base}/api/deliver/${jobId}?token=${deliverySecret}` })
   } catch (e: any) {
     return res.status(500).json({ error: 'verify failed' })
   }
