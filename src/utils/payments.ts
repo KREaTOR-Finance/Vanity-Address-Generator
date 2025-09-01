@@ -9,12 +9,12 @@ export const FIATCOIN_TRUST_LIMIT: string = String((import.meta as any).env?.VIT
 
 export function buildXrpPaymentPayload(params: { destination: string; amountDrops?: string; memos?: any }) {
   const amount = params.amountDrops ?? PRICE_DROPS;
-  // Don't modify the memo structure - pass it through exactly as provided
+  // Ensure Memos is a top-level array field
   const payload = {
     TransactionType: 'Payment',
     Destination: params.destination,
     Amount: amount,
-    ...params.memos, // Keep the original Memos structure
+    Memos: params.memos?.Memos || [],
   };
   console.log('Payment payload:', JSON.stringify(payload, null, 2));
   return payload;
@@ -41,7 +41,7 @@ export function buildIouPaymentPayload(params: { destination: string; currency: 
       issuer: params.issuer,
       value: params.value,
     },
-    ...params.memos, // Keep the original Memos structure
+    Memos: params.memos?.Memos || [],
   };
   console.log('IOU Payment payload:', JSON.stringify(payload, null, 2));
   return payload;

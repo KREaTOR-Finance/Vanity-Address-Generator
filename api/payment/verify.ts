@@ -78,7 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await redis.hset(`job:${jobId}`, {
         status: 'paid',
         txid: result.hash,
-        mode: normalizedMode,
+        mode,
         prefix: prefix || '',
         suffix: suffix || '',
         len,
