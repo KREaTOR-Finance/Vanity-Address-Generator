@@ -47,11 +47,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!result) return res.status(404).json({ error: 'tx not found' })
     if (!result.validated) return res.status(400).json({ error: 'tx not validated' })
     
-    console.log('Transaction details:', {
+    console.log('XRPL Transaction details:', {
+      txid,
       type: result.TransactionType,
       destination: result.Destination,
       amount: result.Amount,
-      memos: result.Memos
+      memos: result.Memos,
+      validated: result.validated
     });
     
     if (result.TransactionType !== 'Payment')
