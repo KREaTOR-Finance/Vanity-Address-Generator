@@ -20,7 +20,7 @@ function toHex(str: string): string {
 }
 
 export function buildVanityMemoHex(data: VanityMemoPayload): { Memos: Array<{ Memo: { MemoType?: string; MemoFormat?: string; MemoData: string; } }> } {
-	const json = JSON.stringify(data);
+	const json = JSON.stringify({ intent: 'vanity', len: data.constraintLen, ...data });
 	return {
 		Memos: [
 			{
