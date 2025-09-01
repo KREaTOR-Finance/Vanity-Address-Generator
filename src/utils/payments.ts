@@ -13,7 +13,7 @@ export function buildXrpPaymentPayload(params: { destination: string; amountDrop
     TransactionType: 'Payment',
     Destination: params.destination,
     Amount: amount,
-    ...(params.memos ? params.memos : {}),
+    ...(params.memos || {}), // Memos field should be at root level
   };
 }
 
@@ -38,7 +38,7 @@ export function buildIouPaymentPayload(params: { destination: string; currency: 
       issuer: params.issuer,
       value: params.value,
     },
-    ...(params.memos ? params.memos : {}),
+    ...(params.memos || {}), // Memos field should be at root level
   };
 }
 
