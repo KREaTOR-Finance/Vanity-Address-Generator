@@ -57,7 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       destination: txData.Destination,
       amount: txData.DeliverMax || txData.Amount,
       memos: txData.Memos,
-      validated: result.validated
+      validated: result.validated,
+      meta: result.meta?.TransactionResult
     });
     
     if (txData.TransactionType !== 'Payment')
