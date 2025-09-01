@@ -62,16 +62,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { intent, mode, prefix, suffix, len } = memo || {}
     if (intent !== 'vanity') return res.status(400).json({ error: 'bad intent' })
+    if (!mode || !len) return res.status(400).json({ error: 'missing mode or len' })
 
-    const normalizedMode = mode === 'combo3x3' ? 'combo' : mode
-    if (normalizedMode === 'prefix') {
-      if (!(len >= 1 && len <= 6) || !ok58(prefix)) return res.status(400).json({ error: 'bad prefix' })
-    } else if (normalizedMode === 'suffix') {
-      if (!(len >= 1 && len <= 6) || !ok58(suffix)) return res.status(400).json({ error: 'bad suffix' })
-    } else if (normalizedMode === 'combo') {
-      if (!(prefix?.length === 3 && suffix?.length === 3) || !ok58(prefix + suffix))
-        return res.status(400).json({ error: 'bad combo' })
-    } else return res.status(400).json({ error: 'bad mode' })
+    // Simpler validation - just check the length and characters
+    if (prefix && !ok58(prefix)) return res.status(400).json({ error: 'bad prefix' })
+    if (suffix && !ok58(suffix)) return res.status(400).json({ error: 'bad suffix' })
+    if (len < 1 || len > 6) return res.status(400).json({ error: 'invalid length' })
 
     // For serverless minimal example, just echo a stub job
     const jobId = txid
