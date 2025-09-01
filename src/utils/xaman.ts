@@ -21,8 +21,9 @@ declare global {
 }
 
 export async function openXamanSign(txjson: any, options?: { submit?: boolean }): Promise<PaymentResult> {
-	const payload = { ...(txjson || {}) };
-	const submit = options?.submit !== false;
+  console.log('Signing payload:', JSON.stringify(txjson, null, 2));
+  const payload = { ...(txjson || {}) };
+  const submit = options?.submit !== false;
 	if (typeof window !== 'undefined' && (window.xAppSdk && typeof window.xAppSdk.openSignRequest === 'function')) {
 		try {
 			const res = await window.xAppSdk.openSignRequest({ json: payload, options: { submit } });

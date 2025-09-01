@@ -9,12 +9,14 @@ export const FIATCOIN_TRUST_LIMIT: string = String((import.meta as any).env?.VIT
 
 export function buildXrpPaymentPayload(params: { destination: string; amountDrops?: string; memos?: any }) {
   const amount = params.amountDrops ?? PRICE_DROPS;
-  return {
+  const payload = {
     TransactionType: 'Payment',
     Destination: params.destination,
     Amount: amount,
-    ...(params.memos || {}), // Memos field should be at root level
+    Memos: params.memos?.Memos || [],
   };
+  console.log('Payment payload:', JSON.stringify(payload, null, 2));
+  return payload;
 }
 
 export function ensureTrustline(params: { currency: string; issuer: string; limit?: string }) {

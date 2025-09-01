@@ -27,8 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         const r = await xrpl.request({ command: 'tx', transaction: txid })
         result = r.result
+        console.log('XRPL tx result:', JSON.stringify(result, null, 2))
         if (result?.validated) break
-      } catch {}
+      } catch (e) {
+        console.log('XRPL tx error:', e)
+      }
       await new Promise((r) => setTimeout(r, 2000))
     }
     // If not found, try CTID lookup (Clio)
