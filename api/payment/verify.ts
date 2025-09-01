@@ -46,8 +46,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!result) return res.status(404).json({ error: 'tx not found' })
     if (!result.validated) return res.status(400).json({ error: 'tx not validated' })
+    
+    console.log('Transaction details:', {
+      type: result.TransactionType,
+      destination: result.Destination,
+      amount: result.Amount,
+      memos: result.Memos
+    });
+    
     if (result.TransactionType !== 'Payment')
-      return res.status(400).json({ error: 'not a payment' })
+      return res.status(400).json({ error: 'not a payment', got: result.TransactionType })
     if (result.Destination !== DEST)
       return res.status(400).json({ error: 'bad destination', expected: DEST, got: result.Destination })
 
