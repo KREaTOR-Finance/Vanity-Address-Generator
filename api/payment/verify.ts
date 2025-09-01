@@ -31,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!result) return res.status(404).json({ error: 'tx not found' })
     if (!result.validated) return res.status(400).json({ error: 'tx not validated' })
     if (result.TransactionType !== 'Payment' || result.Destination !== DEST)
-      return res.status(400).json({ error: 'bad destination' })
+      return res.status(400).json({ error: 'bad destination', expected: DEST, got: result.Destination })
 
     const memoHex = result.Memos?.[0]?.Memo?.MemoData
     if (!memoHex) return res.status(400).json({ error: 'missing memo' })
