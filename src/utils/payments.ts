@@ -9,11 +9,12 @@ export const FIATCOIN_TRUST_LIMIT: string = String((import.meta as any).env?.VIT
 
 export function buildXrpPaymentPayload(params: { destination: string; amountDrops?: string; memos?: any }) {
   const amount = params.amountDrops ?? PRICE_DROPS;
+  // Don't modify the memo structure - pass it through exactly as provided
   const payload = {
     TransactionType: 'Payment',
     Destination: params.destination,
     Amount: amount,
-    Memos: params.memos?.Memos || [],
+    ...params.memos, // Keep the original Memos structure
   };
   console.log('Payment payload:', JSON.stringify(payload, null, 2));
   return payload;
@@ -32,7 +33,7 @@ export function ensureTrustline(params: { currency: string; issuer: string; limi
 }
 
 export function buildIouPaymentPayload(params: { destination: string; currency: string; issuer: string; value: string; memos?: any }) {
-  return {
+  const payload = {
     TransactionType: 'Payment',
     Destination: params.destination,
     Amount: {
@@ -40,8 +41,10 @@ export function buildIouPaymentPayload(params: { destination: string; currency: 
       issuer: params.issuer,
       value: params.value,
     },
-    ...(params.memos || {}), // Memos field should be at root level
+    ...params.memos, // Keep the original Memos structure
   };
+  console.log('IOU Payment payload:', JSON.stringify(payload, null, 2));
+  return payload;
 }
 
 
