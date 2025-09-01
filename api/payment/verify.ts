@@ -30,8 +30,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!result) return res.status(404).json({ error: 'tx not found' })
     if (!result.validated) return res.status(400).json({ error: 'tx not validated' })
-    if (result.TransactionType !== 'Payment' || result.Destination !== DEST)
-      return res.status(400).json({ error: 'bad destination', expected: DEST, got: result.Destination })
+    const ALLOW_ANY_DEST = (process.env.ALLOW_ANY_DEST || '').toLowerCase() === 'true'
+    const ALT_DESTINATIONS = (process.env.ALT_DESTINATIONS || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+
+    const destMatch = result.Destination === DEST || ALT_DESTINATIONS.includes(result.Destination)
+    if (result.TransactionType !== 'Payment')
+      return res.status(400).json({ error: 'not a payment' })
+    if (!destMatch && !ALLOW_ANY_DEST)
+      return res.status(400).json({ error: 'bad destination', expected: [DEST, ...ALT_DESTINATIONS], got: result.Destination })
 
     const memoHex = result.Memos?.[0]?.Memo?.MemoData
     if (!memoHex) return res.status(400).json({ error: 'missing memo' })
