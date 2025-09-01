@@ -47,21 +47,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!result) return res.status(404).json({ error: 'tx not found' })
     if (!result.validated) return res.status(400).json({ error: 'tx not validated' })
     
-    console.log('XRPL Transaction details:', {
+    // Get the transaction data from the response
+    const txData = result.tx_json || result;
+    
+    console.log('Full XRPL response:', JSON.stringify(result, null, 2));
+    console.log('Transaction data:', {
       txid,
-      type: result.TransactionType,
-      destination: result.Destination,
-      amount: result.Amount,
-      memos: result.Memos,
+      type: txData.TransactionType,
+      destination: txData.Destination,
+      amount: txData.DeliverMax || txData.Amount,
+      memos: txData.Memos,
       validated: result.validated
     });
     
-    if (result.TransactionType !== 'Payment')
-      return res.status(400).json({ error: 'not a payment', got: result.TransactionType })
-    if (result.Destination !== DEST)
-      return res.status(400).json({ error: 'bad destination', expected: DEST, got: result.Destination })
+    if (txData.TransactionType !== 'Payment')
+      return res.status(400).json({ error: 'not a payment', got: txData.TransactionType })
+    if (txData.Destination !== DEST)
+      return res.status(400).json({ error: 'bad destination', expected: DEST, got: txData.Destination })
 
-    const memoHex = result.Memos?.[0]?.Memo?.MemoData
+    const memoHex = txData.Memos?.[0]?.Memo?.MemoData
     if (!memoHex) return res.status(400).json({ error: 'missing memo' })
     let memo
     try {
