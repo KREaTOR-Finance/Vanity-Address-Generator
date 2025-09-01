@@ -6,6 +6,11 @@ const ALLOWED = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
 const ok58 = (s?: string) => [...(s || '')].every((c) => ALLOWED.includes(c))
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Basic CORS for preflight/same-origin JSON
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'content-type, authorization')
+  if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' })
   try {
     const { txid } = (req.body || {}) as { txid?: string }
@@ -25,6 +30,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (result?.validated) break
       } catch {}
       await new Promise((r) => setTimeout(r, 2000))
+    }
+    // If not found, try CTID lookup (Clio / ctids)
+    if (!result) {
+      try {
+        const r2 = await xrpl.request({ command: 'tx', ctids: [txid] as any }) as any
+        const item = (r2 as any)?.result?.transactions?.[0]
+        if (item?.validated) result = item
+      } catch {}
     }
     await xrpl.disconnect()
 
