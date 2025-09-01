@@ -33,6 +33,13 @@ export async function openXamanSign(txjson: any, options?: { submit?: boolean })
 			}
 			return { success: false, error: 'Rejected' };
 		} catch (e: any) {
+			// Check for rate limit error
+			if (e?.message?.includes('Max payloads')) {
+				return { 
+					success: false, 
+					error: 'Too many payment attempts. Please wait a few minutes and try again.' 
+				};
+			}
 			return { success: false, error: e?.message || String(e) };
 		}
 	}
