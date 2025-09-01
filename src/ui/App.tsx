@@ -296,6 +296,14 @@ export default function App() {
 						<div className="text-neutral-400 mt-1">If this is a CDN issue, try again or check your network/CSP.</div>
 					</div>
 				)}
+				{receiptHash && !error && (
+					<div className="mt-4 bg-emerald-900/30 border border-emerald-800 rounded-lg p-3 text-sm">
+						<div className="flex items-center justify-between">
+							<div className="text-emerald-300">Payment completed! Your vanity address is being generated.</div>
+							{receiptUrl && <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-200 hover:text-emerald-100">View Receipt</a>}
+						</div>
+					</div>
+				)}
 
 				<div className="grid md:grid-cols-3 gap-4 mt-6">
 					<div className="md:col-span-2 space-y-4">
