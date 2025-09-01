@@ -145,22 +145,45 @@ export default function App() {
 			}
 			setReceiptHash(pay.hash);
 
-			// Verify and enqueue with public API
+			// Verify and enqueue with public API (retry while ledger validates)
 			try {
 				const base = (import.meta.env.VITE_PUBLIC_API_BASE as string) || '';
-				const res = await fetch(`${base}/api/payment/verify`, {
-					method: 'POST',
-					headers: { 'content-type': 'application/json' },
-					body: JSON.stringify({ txid: pay.hash }),
-				});
-				if (!res.ok) {
-					const err = await res.json().catch(() => ({}));
-					setError(err?.error || 'Verification failed');
+				const started = Date.now();
+				let verifyOk = false;
+				let lastErr: any = null;
+				
+				while (Date.now() - started < 20000) { // retry for up to 20 seconds
+					const res = await fetch(`${base}/api/payment/verify`, {
+						method: 'POST',
+						headers: { 'content-type': 'application/json' },
+						body: JSON.stringify({ txid: pay.hash }),
+					});
+					
+					if (res.ok) {
+						const data: { jobId: string; progressUrl: string; deliveryUrl: string } = await res.json();
+						remoteJobRef.current = data;
+						setIsRunning(true);
+						verifyOk = true;
+						break;
+					}
+					
+					const err = await res.json().catch(() => ({} as any));
+					lastErr = err?.error || 'Verification failed';
+					
+					// Only retry for validation-related errors
+					if (err?.error === 'tx not validated' || err?.error === 'tx not found') {
+						await new Promise(r => setTimeout(r, 1500)); // Wait 1.5s between retries
+						continue;
+					}
+					
+					// For other errors (like bad destination), fail immediately
+					break;
+				}
+				
+				if (!verifyOk) {
+					setError(lastErr || 'Verification failed');
 					return;
 				}
-				const data: { jobId: string; progressUrl: string; deliveryUrl: string } = await res.json();
-				remoteJobRef.current = data;
-				setIsRunning(true);
 
 				// Poll progress
 				pollTimerRef.current = window.setInterval(async () => {
