@@ -27,6 +27,7 @@ export async function openXamanSign(txjson: any, options?: { submit?: boolean })
 	if (typeof window !== 'undefined' && (window.xAppSdk && typeof window.xAppSdk.openSignRequest === 'function')) {
 		try {
 			const res = await window.xAppSdk.openSignRequest({ json: payload, options: { submit } });
+			console.log('Xaman sign response:', JSON.stringify(res, null, 2));
 			if (res && res.signed && res.txid) {
 				return { success: true, hash: res.txid };
 			}
@@ -64,7 +65,7 @@ export async function openXamanPayment(params: PaymentParams): Promise<PaymentRe
 		TransactionType: 'Payment',
 		Destination: params.destination,
 		Amount: params.amountDrops,
-		...(params.memos ? params.memos : {}),
+		...params.memos, // Keep original Memos structure
 	};
 	return openXamanSign(payload, { submit: true });
 }
