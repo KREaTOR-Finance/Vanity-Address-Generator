@@ -122,6 +122,7 @@ export default function App() {
 				app: 'xrpl-raddress-vanity',
 				version: '0.1.0',
 			});
+			console.log('Built memo:', JSON.stringify(memo, null, 2));
 			let pay;
 			if (PAYMENT_MODE === 'XRP') {
 				const tx = buildXrpPaymentPayload({ destination, amountDrops: PRICE_DROPS, memos: memo });
