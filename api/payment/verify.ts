@@ -31,11 +31,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } catch {}
       await new Promise((r) => setTimeout(r, 2000))
     }
-    // If not found, try CTID lookup (Clio / ctids)
+    // If not found, try CTID lookup (Clio)
     if (!result) {
       try {
-        const r2 = await xrpl.request({ command: 'tx', ctids: [txid] as any }) as any
-        const item = (r2 as any)?.result?.transactions?.[0]
+        const r2 = await xrpl.request({ command: 'tx', ctid: txid } as any) as any
+        const item = (r2 as any)?.result?.transaction || (r2 as any)?.result?.transactions?.[0] || (r2 as any)?.result
         if (item?.validated) result = item
       } catch {}
     }
